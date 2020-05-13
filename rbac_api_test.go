@@ -16,6 +16,7 @@ package casbin
 
 import (
 	defaultrolemanager "github.com/casbin/casbin/v2/rbac/default-role-manager"
+	"sort"
 	"testing"
 	"fmt"
 
@@ -273,6 +274,10 @@ func testGetImplicitUsers(t *testing.T, e *Enforcer, res []string, permission ..
 	fmt.Println(myRes)
 	t.Log(myRes)
 	t.Log("Implicit users for permission: ", permission, ": ", myRes)
+
+	sort.Strings(res)
+	sort.Strings(myRes)
+
 	if !util.ArrayEquals(res, myRes) {
 		t.Error("Implicit users for permission: ", permission, ": ", myRes, ", supposed to be ", res)
 	}
@@ -285,4 +290,10 @@ func TestImplicitUserAPI(t *testing.T) {
 	testGetImplicitUsers(t, e, []string{"alice"}, "data1", "write")
 	testGetImplicitUsers(t, e, []string{"alice"}, "data2", "read")
 	testGetImplicitUsers(t, e, []string{"alice", "bob"}, "data2", "write")
+
+	e.ClearPolicy()
+	e.AddPolicy("admin", "data1", "read")
+	e.AddPolicy("bob", "data1", "read")
+	e.AddGroupingPolicy("alice", "admin")
+	testGetImplicitUsers(t, e, []string{"alice", "bob"}, "data1", "read")
 }
